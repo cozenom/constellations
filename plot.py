@@ -17,8 +17,8 @@ def stereographic_from_altaz(alt_deg, az_deg):
     z = np.radians(90.0 - alt_deg)
     r = 2.0 * np.tan(z / 2.0)
     a = np.radians(az_deg)
-    x = r * np.cos(a)   # East is +x
-    y = r * np.sin(a)   # North is +y
+    x = r * np.sin(a)
+    y = r * np.cos(a)
     return x, y
 
 # --- Observer location and time ---
