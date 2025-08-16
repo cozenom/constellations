@@ -1,4 +1,5 @@
 import json
+import os
 from datetime import datetime, timezone
 
 import matplotlib.patheffects as path_effects
@@ -278,8 +279,14 @@ def plot_visible_constellations(
     ax.text(-R - label_offset, 0, "W", **font_props)
 
     plt.tight_layout()
+    filename = fname if fname else f"visible_constellations_{place}.png"
+
+    # Ensure the directory exists
+    os.makedirs("./images", exist_ok=True)
     plt.savefig(
-        fname or f"visible_constellations_{place}.png", dpi=200, bbox_inches="tight"
+        f"./images/{filename}",
+        dpi=200,
+        bbox_inches="tight",
     )
 
     # --- Print visible constellations ---
