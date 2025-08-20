@@ -36,12 +36,16 @@ def getloc(name: str):
     else:
         return -1
 
+def get_antipodal(lat, long):
+    return -lat, (long + 180) if long < 0 else (long - 180)
 
 def plot_visible_constellations(
-    place="Los Angeles", limiting_magnitude=6.0, time=None, fname=None
+    place="Los Angeles", limiting_magnitude=6.0, time=None, fname=None, show_not_visible=False
 ):
 
     LAT, LON, ELEV_M = getloc(place)
+    if show_not_visible:
+        LAT, LON = get_antipodal(LAT, LON)
 
     ts = load.timescale()
     t = ts.from_datetime(time or datetime.now(timezone.utc))
@@ -262,9 +266,12 @@ def plot_visible_constellations(
     # --- Final formatting ---
     ax.set_aspect("equal", adjustable="box")
     ax.axis("off")
+    title = f'Visible Constellations {place} — {datetime.now().astimezone().strftime("%Y-%m-%d %H:%M %Z")}\nLat {LAT:.4f}, Lon {LON:.4f}' \
+        if not show_not_visible else \
+        f'Not Visible Constellations {place} — {datetime.now().astimezone().strftime("%Y-%m-%d %H:%M %Z")}\nLat {LAT:.4f}, Lon {LON:.4f}'
+        
     ax.set_title(
-        f'Visible Constellations {place} — {datetime.now().astimezone().strftime("%Y-%m-%d %H:%M %Z")}\n'
-        f"Lat {LAT:.4f}, Lon {LON:.4f}",
+        title,
         fontsize=18,
         color="#FFFFFF",
         pad=14,
