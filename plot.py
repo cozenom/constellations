@@ -7,7 +7,6 @@ import numpy as np
 from geopy.geocoders import Nominatim
 from matplotlib import pyplot as plt
 from matplotlib.collections import LineCollection
-from matplotlib.transforms import Bbox
 from skyfield.api import Star, load, wgs84
 from skyfield.data import hipparcos, stellarium
 
@@ -36,16 +35,18 @@ def getloc(name: str):
     else:
         return -1
 
+
 def get_antipodal(lat, long):
     return -lat, (long + 180) if long < 0 else (long - 180)
 
-def plot_visible_constellations(
-    place="Los Angeles", limiting_magnitude=6.0, time=None, fname=None, show_not_visible=False
-):
 
+def plot_constellations(
+        place="Los Angeles", limiting_magnitude=6.0, time=None, fname=None, plot_visible=True
+):
     LAT, LON, ELEV_M = getloc(place)
-    if show_not_visible:
+    if not plot_visible:
         LAT, LON = get_antipodal(LAT, LON)
+    ELEV_M = 0
 
     ts = load.timescale()
     t = ts.from_datetime(time or datetime.now(timezone.utc))
@@ -267,9 +268,9 @@ def plot_visible_constellations(
     ax.set_aspect("equal", adjustable="box")
     ax.axis("off")
     title = f'Visible Constellations {place} — {datetime.now().astimezone().strftime("%Y-%m-%d %H:%M %Z")}\nLat {LAT:.4f}, Lon {LON:.4f}' \
-        if not show_not_visible else \
+        if plot_visible else \
         f'Not Visible Constellations {place} — {datetime.now().astimezone().strftime("%Y-%m-%d %H:%M %Z")}\nLat {LAT:.4f}, Lon {LON:.4f}'
-        
+
     ax.set_title(
         title,
         fontsize=18,
@@ -286,8 +287,8 @@ def plot_visible_constellations(
     ax.text(-R - label_offset, 0, "W", **font_props)
 
     plt.tight_layout()
-    filename = fname if fname else f"visible_constellations_{place}.png"
-
+    filename = fname if fname else f"visible_constellations_{place}.png" if plot_visible else f"not_visible_constellations_{place}.png"
+    print(filename)
     # Ensure the directory exists
     os.makedirs("./images", exist_ok=True)
     plt.savefig(
