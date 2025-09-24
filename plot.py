@@ -106,6 +106,7 @@ def get_astronomical_data(place, time, plot_visible=True):
     visible_constellations = []
     constellation_edges_xy = []
     name_to_xy_for_label = {}
+    constellation_star_ids = set()  # Track stars that are part of constellations
 
     for name, edges in constellations:
         if not edges:
@@ -132,6 +133,9 @@ def get_astronomical_data(place, time, plot_visible=True):
                     segs.append([(x1, y1), (x2, y2)])
                     xs_for_label.extend([x1, x2])
                     ys_for_label.extend([y1, y2])
+                    # Add these stars to constellation star set
+                    constellation_star_ids.add(h1)
+                    constellation_star_ids.add(h2)
 
         if segs:
             constellation_edges_xy.extend(segs)
@@ -150,6 +154,7 @@ def get_astronomical_data(place, time, plot_visible=True):
         'name_to_xy_for_label': name_to_xy_for_label,
         'const_names': const_names,
         'visible_constellations': visible_constellations,
+        'constellation_star_ids': constellation_star_ids,
         'coords': (LAT, LON),
         'original_coords': original_coords,
         'time': t
@@ -165,6 +170,7 @@ def plot_sky_on_axis(ax, data, limiting_magnitude, title_suffix=""):
     name_to_xy_for_label = data['name_to_xy_for_label']
     const_names = data['const_names']
     visible_constellations = data['visible_constellations']
+    constellation_star_ids = data['constellation_star_ids']
 
     # --- Draw constellation lines ---
     if constellation_edges_xy:
@@ -176,34 +182,56 @@ def plot_sky_on_axis(ax, data, limiting_magnitude, title_suffix=""):
     mag = stars.loc[bright, "magnitude"]
     # Calculate marker size based on magnitude (brighter = larger)
     marker_size = (0.3 + limiting_magnitude - mag) ** 2.0
-    ax.scatter(
-        stars.loc[bright, "x"],
-        stars.loc[bright, "y"],
-        s=marker_size,
-        color="#FFFFFF",
-        zorder=3,
-    )
+
+    # Separate constellation stars from regular stars
+    bright_indices = stars.loc[bright].index
+    constellation_stars = bright_indices.intersection(constellation_star_ids)
+    regular_stars = bright_indices.difference(constellation_star_ids)
+
+    # Plot regular stars first (dimmer, so they appear behind constellation stars)
+    if len(regular_stars) > 0:
+        regular_mag = stars.loc[regular_stars, "magnitude"]
+        regular_size = (0.3 + limiting_magnitude - regular_mag) ** 2.0
+        ax.scatter(
+            stars.loc[regular_stars, "x"],
+            stars.loc[regular_stars, "y"],
+            s=regular_size,
+            color="#CCCCCC",  # Dimmer gray for regular stars
+            zorder=3,
+        )
+
+    # Plot constellation stars on top (brighter, more prominent)
+    if len(constellation_stars) > 0:
+        const_mag = stars.loc[constellation_stars, "magnitude"]
+        const_size = (0.3 + limiting_magnitude - const_mag) ** 2.0
+        ax.scatter(
+            stars.loc[constellation_stars, "x"],
+            stars.loc[constellation_stars, "y"],
+            s=const_size,
+            color="#FFFFFF",  # Bright white for constellation stars
+            zorder=4,
+        )
 
     # --- Plot planets and labels ---
     planet_marker_sizes = {
         "Mercury": 25, "Venus": 35, "Mars": 30, "Jupiter": 50,
-        "Saturn": 45, "Uranus": 35, "Neptune": 35,"Moon": 80
+        "Saturn": 45, "Uranus": 35, "Neptune": 35, "Moon": 80
     }
 
     for name, (x, y) in planet_positions.items():
-        color="orange"
-        if name=="Moon":
+        color = "orange"
+        if name == "Moon":
             color = "#FFFFCC"
 
         # Draw planet marker
         ax.scatter(
             x, y, color=color, s=planet_marker_sizes[name],
-            edgecolors="white", zorder=2,
+            edgecolors="white", zorder=5,
         )
         # Add planet label with outline for visibility
         ax.text(
             x, y + 0.05, name, color=color, fontsize=5, fontweight="bold",
-            ha="center", va="bottom",
+            ha="center", va="bottom", zorder=6,
             path_effects=[
                 path_effects.Stroke(linewidth=1.5, foreground="black"),
                 path_effects.Normal(),
@@ -245,6 +273,7 @@ def plot_sky_on_axis(ax, data, limiting_magnitude, title_suffix=""):
                 ax.text(
                     cx_off, cy_off, const_names[name], fontsize=5,
                     ha="center", va="center", color="#FFFFFF", fontweight="bold",
+                    zorder=7,
                     path_effects=[
                         path_effects.Stroke(linewidth=1.5, foreground="black"),
                         path_effects.Normal(),
