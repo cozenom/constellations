@@ -148,29 +148,29 @@ def get_astronomical_data(place, time, plot_visible=True):
 
     # --- Return all data needed for plotting ---
     return {
-        'stars': stars,
-        'planet_positions': planet_positions,
-        'constellation_edges_xy': constellation_edges_xy,
-        'name_to_xy_for_label': name_to_xy_for_label,
-        'const_names': const_names,
-        'visible_constellations': visible_constellations,
-        'constellation_star_ids': constellation_star_ids,
-        'coords': (LAT, LON),
-        'original_coords': original_coords,
-        'time': t
+        "stars": stars,
+        "planet_positions": planet_positions,
+        "constellation_edges_xy": constellation_edges_xy,
+        "name_to_xy_for_label": name_to_xy_for_label,
+        "const_names": const_names,
+        "visible_constellations": visible_constellations,
+        "constellation_star_ids": constellation_star_ids,
+        "coords": (LAT, LON),
+        "original_coords": original_coords,
+        "time": t,
     }
 
 
 # --- Plot Sky on Single Axis ---
 def plot_sky_on_axis(ax, data, limiting_magnitude, title_suffix=""):
     # --- Extract data ---
-    stars = data['stars']
-    planet_positions = data['planet_positions']
-    constellation_edges_xy = data['constellation_edges_xy']
-    name_to_xy_for_label = data['name_to_xy_for_label']
-    const_names = data['const_names']
-    visible_constellations = data['visible_constellations']
-    constellation_star_ids = data['constellation_star_ids']
+    stars = data["stars"]
+    planet_positions = data["planet_positions"]
+    constellation_edges_xy = data["constellation_edges_xy"]
+    name_to_xy_for_label = data["name_to_xy_for_label"]
+    const_names = data["const_names"]
+    visible_constellations = data["visible_constellations"]
+    constellation_star_ids = data["constellation_star_ids"]
 
     # --- Draw constellation lines ---
     if constellation_edges_xy:
@@ -191,7 +191,7 @@ def plot_sky_on_axis(ax, data, limiting_magnitude, title_suffix=""):
     # Plot regular stars first (dimmer, so they appear behind constellation stars)
     if len(regular_stars) > 0:
         regular_mag = stars.loc[regular_stars, "magnitude"]
-        regular_size = (0.3 + limiting_magnitude - regular_mag) ** 2.0
+        regular_size = (0.3 + limiting_magnitude - regular_mag) ** 1.5
         ax.scatter(
             stars.loc[regular_stars, "x"],
             stars.loc[regular_stars, "y"],
@@ -203,7 +203,7 @@ def plot_sky_on_axis(ax, data, limiting_magnitude, title_suffix=""):
     # Plot constellation stars on top (brighter, more prominent)
     if len(constellation_stars) > 0:
         const_mag = stars.loc[constellation_stars, "magnitude"]
-        const_size = (0.3 + limiting_magnitude - const_mag) ** 2.0
+        const_size = (0.3 + limiting_magnitude - const_mag) ** 1.5
         ax.scatter(
             stars.loc[constellation_stars, "x"],
             stars.loc[constellation_stars, "y"],
@@ -214,8 +214,14 @@ def plot_sky_on_axis(ax, data, limiting_magnitude, title_suffix=""):
 
     # --- Plot planets and labels ---
     planet_marker_sizes = {
-        "Mercury": 25, "Venus": 35, "Mars": 30, "Jupiter": 50,
-        "Saturn": 45, "Uranus": 35, "Neptune": 35, "Moon": 80
+        "Mercury": 25,
+        "Venus": 35,
+        "Mars": 30,
+        "Jupiter": 50,
+        "Saturn": 45,
+        "Uranus": 35,
+        "Neptune": 35,
+        "Moon": 80,
     }
 
     for name, (x, y) in planet_positions.items():
@@ -225,13 +231,24 @@ def plot_sky_on_axis(ax, data, limiting_magnitude, title_suffix=""):
 
         # Draw planet marker
         ax.scatter(
-            x, y, color=color, s=planet_marker_sizes[name],
-            edgecolors="white", zorder=5,
+            x,
+            y,
+            color=color,
+            s=planet_marker_sizes[name],
+            edgecolors="white",
+            zorder=5,
         )
         # Add planet label with outline for visibility
         ax.text(
-            x, y + 0.05, name, color=color, fontsize=5, fontweight="bold",
-            ha="center", va="bottom", zorder=6,
+            x,
+            y + 0.05,
+            name,
+            color=color,
+            fontsize=5,
+            fontweight="bold",
+            ha="center",
+            va="bottom",
+            zorder=6,
             path_effects=[
                 path_effects.Stroke(linewidth=1.5, foreground="black"),
                 path_effects.Normal(),
@@ -250,8 +267,15 @@ def plot_sky_on_axis(ax, data, limiting_magnitude, title_suffix=""):
     offset_dist = 0.08
     # Try different offset positions to avoid overlaps
     offsets = [
-        (0, 0), (0.05, 0), (-0.05, 0), (0, 0.05), (0, -0.05),
-        (0.04, 0.04), (-0.04, 0.04), (0.04, -0.04), (-0.04, -0.04),
+        (0, 0),
+        (0.05, 0),
+        (-0.05, 0),
+        (0, 0.05),
+        (0, -0.05),
+        (0.04, 0.04),
+        (-0.04, 0.04),
+        (0.04, -0.04),
+        (-0.04, -0.04),
     ]
 
     for name, (cx, cy) in name_to_xy_for_label.items():
@@ -264,15 +288,20 @@ def plot_sky_on_axis(ax, data, limiting_magnitude, title_suffix=""):
             base_x, base_y = cx, cy
 
         # Try to place label without overlapping existing ones
-        placed = False
         for dx, dy in offsets:
             cx_off = base_x + dx
             cy_off = base_y + dy
 
             if not too_close(cx_off, cy_off):
                 ax.text(
-                    cx_off, cy_off, const_names[name], fontsize=5,
-                    ha="center", va="center", color="#FFFFFF", fontweight="bold",
+                    cx_off,
+                    cy_off,
+                    const_names[name],
+                    fontsize=5,
+                    ha="center",
+                    va="center",
+                    color="#FFFFFF",
+                    fontweight="bold",
                     zorder=7,
                     path_effects=[
                         path_effects.Stroke(linewidth=1.5, foreground="black"),
@@ -280,18 +309,22 @@ def plot_sky_on_axis(ax, data, limiting_magnitude, title_suffix=""):
                     ],
                 )
                 used_positions.append((cx_off, cy_off))
-                placed = True
                 break
 
-        # If we couldn't place it anywhere, skip this label
+        # Cant place = skip
 
     # --- Draw horizon circle ---
     R = 2.0
     ax.set_xlim(-R * 1.02, R * 1.02)
     ax.set_ylim(-R * 1.02, R * 1.02)
     circle = plt.Circle(
-        (0, 0), R, transform=ax.transData, facecolor="#010057", alpha=1,
-        edgecolor="#FFFFFF", linewidth=2,
+        (0, 0),
+        R,
+        transform=ax.transData,
+        facecolor="#010057",
+        alpha=1,
+        edgecolor="#FFFFFF",
+        linewidth=2,
     )
     ax.add_artist(circle)
 
@@ -300,9 +333,17 @@ def plot_sky_on_axis(ax, data, limiting_magnitude, title_suffix=""):
     ax.axis("off")
 
     # Add subplot title
-    ax.text(0, R + 0.15, title_suffix,
-            ha="center", va="bottom", fontsize=14, color="#FFFFFF",
-            transform=ax.transData, fontweight="bold")
+    ax.text(
+        0,
+        R + 0.15,
+        title_suffix,
+        ha="center",
+        va="bottom",
+        fontsize=14,
+        color="#FFFFFF",
+        transform=ax.transData,
+        fontweight="bold",
+    )
 
     # --- Add cardinal direction labels ---
     label_offset = 0.04
@@ -326,7 +367,11 @@ def plot_sky_on_axis(ax, data, limiting_magnitude, title_suffix=""):
 
 # --- Main Plotting Function ---
 def plot_constellations(
-        place="Los Angeles", limiting_magnitude=6.0, time=None, fname=None, plot_visible=True
+    place="Los Angeles",
+    limiting_magnitude=6.0,
+    time=None,
+    fname=None,
+    plot_visible=True,
 ):
     # --- Side-by-side case ---
     if plot_visible == "both":
@@ -339,11 +384,15 @@ def plot_constellations(
         fig.patch.set_facecolor("#000000")
 
         # Plot both views
-        visible_constellations = plot_sky_on_axis(ax1, visible_data, limiting_magnitude, "Visible")
-        not_visible_constellations = plot_sky_on_axis(ax2, not_visible_data, limiting_magnitude, "Not Visible")
+        visible_constellations = plot_sky_on_axis(
+            ax1, visible_data, limiting_magnitude, "Visible"
+        )
+        not_visible_constellations = plot_sky_on_axis(
+            ax2, not_visible_data, limiting_magnitude, "Not Visible"
+        )
 
         # Add main title
-        LAT, LON = visible_data['original_coords']
+        LAT, LON = visible_data["original_coords"]
         current_time = time or datetime.now(timezone.utc)
         main_title = f'Sky View from {place} — {current_time.astimezone().strftime("%Y-%m-%d %H:%M %Z")}\nLat {LAT:.4f}, Lon {LON:.4f}'
         fig.suptitle(main_title, fontsize=20, color="#FFFFFF", y=0.95)
@@ -370,7 +419,7 @@ def plot_constellations(
     visible_constellations = plot_sky_on_axis(ax, data, limiting_magnitude)
 
     # Add title
-    LAT, LON = data['coords']
+    LAT, LON = data["coords"]
     current_time = time or datetime.now(timezone.utc)
     title = f'{"Visible" if plot_visible else "Not Visible"} Constellations {place} — {current_time.astimezone().strftime("%Y-%m-%d %H:%M %Z")}\nLat {LAT:.4f}, Lon {LON:.4f}'
     ax.set_title(title, fontsize=18, color="#FFFFFF", pad=14)
@@ -378,7 +427,11 @@ def plot_constellations(
     plt.tight_layout()
 
     # Save the image
-    filename = fname if fname else f"{'visible' if plot_visible else 'not_visible'}_constellations_{place}.png"
+    filename = (
+        fname
+        if fname
+        else f"{'visible' if plot_visible else 'not_visible'}_constellations_{place}.png"
+    )
     print(filename)
     os.makedirs("./images", exist_ok=True)
     plt.savefig(f"./images/{filename}", dpi=200, bbox_inches="tight")
